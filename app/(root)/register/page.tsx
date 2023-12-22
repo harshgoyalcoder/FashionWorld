@@ -2,10 +2,11 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { Button } from "@mui/material";
 
 const Register = () => {
   const [error, setError] = useState(null);
-
+  
   const router = useRouter();
 
   const handleSubmit = async (e:any) => {
@@ -56,18 +57,16 @@ const Register = () => {
         required
         className="w-full px-3 py-2 border rounded-lg shadow-sm"
       />
-      <button className="bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 cursor-pointer">
+      <Button type="submit">
         Register
-      </button>
+      </Button>
       {error && <div className="text-red-600">Something went wrong!</div>}
     </form>
     <span className="text-gray-400 my-4">- OR -</span>
-    <button onClick={()=>signIn}>
-      <p  className="text-blue-500 hover:underline">Login with an existing account</p>
-    </button>
-    {/* <button onClick={signIn("google")}>
-      <p className="text-blue-500 hover:underline">Login with an Google</p>
-    </button> */}
+    <Button href="/login">
+     Login with an existing account
+    </Button>
+   
   </div>
   );
 };
