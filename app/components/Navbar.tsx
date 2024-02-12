@@ -1,61 +1,178 @@
 "use client"
 import React from 'react';
-import styled from 'styled-components';
-import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
+import { useSession } from "next-auth/react"
 import Badge from '@mui/material/Badge';
 import SearchIcon from '@mui/icons-material/Search';
-import { useSelector } from 'react-redux';
 import Link from 'next/link';
-import { signIn, signOut } from 'next-auth/react';
-import { Box, Button, Input } from '@mui/material';
+import {  signOut } from 'next-auth/react';
+import { Box, Button } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import InputBase from '@mui/material/InputBase';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import Menu from '@mui/material/Menu';
+import Avatar from '@mui/material/Avatar';
+import Tooltip from '@mui/material/Tooltip';
+import MenuItem from '@mui/material/MenuItem';
+import ShoppingBag from '@mui/icons-material/ShoppingBag';
+import FavoriteBorderOutlined from '@mui/icons-material/FavoriteBorderOutlined';
+import LocalMall from '@mui/icons-material/LocalMall';
+import { useRouter } from 'next/navigation';
+import PopUpCard from './utils/popUpCard';
+import { useSelector } from 'react-redux';
+import { RootState } from '../GlobalRedux/store';
 
-const Container = styled.div`
-  height:60px;
-  `;
- 
-const Language=styled.span`
-  font-size: 14px;
-  cursor: pointer;
-  `;
-const SearchContainer=styled.div`
-  border: 0.5px solid lightgray;
-  display: flex;
-  align-items: center;
-  margin-left: 25px;
-  padding: 5px;
-  
-  `;
+const SearchIconWrapper = styled('div')(({ theme }) => ({
+  padding: theme.spacing(0, 2),
+  height: '100%',
+  position: 'absolute',
+  pointerEvents: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}));
+
+const Search = styled('div')(({ theme }) => ({
+  position: 'relative',
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: "white",
+  opacity:"0.9",
+  '&:hover': {
+    backgroundColor: "white",
+    opacity:"1.1"
+  },
+  marginRight: theme.spacing(2),
+  marginLeft: 0,
+  width: '100%',
+  [theme.breakpoints.up('sm')]: {
+    marginLeft: theme.spacing(3),
+    width: 'auto',
+  },
+}));
 
 
-export default function Navbar() {;
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+  color: 'inherit',
+  '& .MuiInputBase-input': {
+    padding: theme.spacing(1, 1, 1, 0),
+    // vertical padding + font size from searchIcon
+    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    transition: theme.transitions.create('width'),
+    width: '100%',
+    [theme.breakpoints.up('md')]: {
+      width: '20ch',
+    },
+  },
+}));
+const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
-  // const quantity= useSelector(state=>state?.cart?.quantity)
-const handleSignOut=()=>{
-  signOut();
-}
+export default function Navbar() {
+
+  const router=useRouter();
+  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
+  const [open, setOpen] = React.useState(false);
+  const [selectedValue, setSelectedValue] = React.useState();
+  const session=useSession();
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
+  if(session.status==="unauthenticated"){
+    handleClickOpen();
+  }else{
+    setAnchorElUser(event.currentTarget);
+  }
+};
+
+
+const handleItemClick = (setting: string) => {
+  switch (setting) {
+    case 'Profile':
+      break;
+    case 'Account':
+      break;
+    case 'Dashboard':
+      router.push('/')
+      break;
+    case 'Logout':
+      signOut();
+      break;
+    default:
+      break;
+  }
+  setAnchorElUser(null);
+
+};
 
   return (
-    <Container>
-      <Box sx={{marginTop:"1rem",display:"flex",justifyContent:"space-around"}}>
+    <>
+    <PopUpCard
+        open={open}
+        onClose={()=>handleClose()}
+      />
+      <Box sx={{minHeight:"4rem",backgroundColor:"#EDEDED",display:"flex",alignItems:'center',justifyContent:"space-between",padding:"0 2rem"}}>
+      <Box sx={{width:"4rem",height:"4rem"}}>
+        <img src='/assets/logo.png'/>
+      </Box>
+      <Search>
+        <SearchIconWrapper>
+          <SearchIcon />
+        </SearchIconWrapper>
+        <StyledInputBase
+          placeholder="Search…"
+          inputProps={{ 'aria-label': 'search' }}
+        />
+      </Search>
+        <Box sx={{display:"flex",gap:"3rem",alignItems:"center"}}>
+        <Link href="/wishlist">
+        <Badge  badgeContent={"12"} color="primary">
+          <FavoriteBorderOutlined color="action" />
+        </Badge>
+        </Link>
+        <Link href="/cart">
+        <Badge badgeContent={"12"} color="primary">
+          <LocalMall color="action" />
+        </Badge>
+        </Link>
 
-              <Language>EN</Language>
-              <SearchContainer>
-                <Input placeholder="Search"/>
-                <SearchIcon style={{color:'gray',fontSize:16}}/>
-              </SearchContainer>
-              <h3>Krishna</h3>
-              <Button href='/register'>Register</Button>
-              <Button href='login'>Log In</Button>
-              <Button onClick={handleSignOut}>Sign Out</Button>
-              <Link href="/cart">
-              <div>
-              <Badge badgeContent={"12"} color="primary">
-               <ShoppingCartOutlinedIcon color="action" />
-              </Badge>
-              </div>
-              </Link>
+        <Box sx={{ flexGrow: 0 }}>
+            <Tooltip title="Open settings">
+              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                <Avatar alt="Remy Sharp" src="/images/model1.png" />
+              </IconButton>
+            </Tooltip>
+              <Typography sx={{fontSize:"10px"}}>{session.data?.user?.name}</Typography>
+            <Menu
+              sx={{ mt: '45px' }}
+              id="menu-appbar"
+              anchorEl={anchorElUser}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={Boolean(anchorElUser)}
+              onClose={()=>setAnchorElUser(null)}
+            >
+              {settings.map((setting) => (
+                <MenuItem key={setting} onClick={()=>handleItemClick(setting)}>
+                  <Typography textAlign="center">{setting}</Typography>
+                </MenuItem>
+              ))}
+            </Menu>
+        </Box>
+        </Box>
+        
       </Box>
 
-    </Container>
+    </>
   )
 }

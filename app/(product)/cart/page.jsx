@@ -1,27 +1,18 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import Navbar from '../../components/Navbar'
-import Announcement from '../../components/Announcement'
-import Footer from '../../components/Footer'
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
 import mobile from '../../responsive';
 import { useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
-// import StripeCheckout from 'react-stripe-checkout';
-// import { useNavigate } from 'react-router';
-// import {publicRequest, userRequest} from "../requestMethods";
+import {useRouter} from 'next/navigation'
+import StripeCheckout from 'react-stripe-checkout';
 
 const KEY ="pk_test_51N1krTLYe2nKSSseF84F6BvZk7236dstWiuYbLcwr8UHCQpW8Rf2SNPeNzQAgUYjGALDq9vDepH0BhYJHbcRs37K00MFz7fiKh";
-
 const Container = styled.div``;
-
 const Wrapper = styled.div`
   padding: 20px;
  ${mobile({padding:'5px'})}
 `;
-
 const Title = styled.h1`
   font-weight: 300;
   text-align: center;
@@ -71,78 +62,6 @@ const Info = styled.div`
    flex: 3;
 `;
 
-const Product = styled.div`
-  display: flex;
-  /* align-items: center; */
-  justify-content: space-between;
-  /* padding: 20px; */
- ${mobile({flexDirection:'column'})}
-
-`;
-
-const ProductDetail = styled.div`
-  flex: 2;
-  display: flex;
-  /* align-items: center; */
-`;
-
-const Image = styled.img`
-   /* object-fit: cover; */
-   width: 200px;
-   /* height: 300px; */
-`;
-
-const Details = styled.div`
-   padding: 20px;
-   display: flex;
-   flex-direction: column;
-   justify-content: space-around;
-   /* gap: 1rem; */
-
-`;
-
-const ProductName = styled.span`
-  
-`;
-
-const ProductId = styled.span``;
-
-const ProductColor = styled.div`
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color:  ${(props) => props.color};
-`;
-
-const ProductSize = styled.span``;
-
-const PriceDetail = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  /* gap: 1rem; */
-`;
-
-const ProductAmountContainer = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  gap: 0.5rem;
-
-`;
-
-const ProductAmount = styled.div`
-  font-size: 24px;
-`;
-
-const ProductPrice = styled.div`
-  font-size: 30px;
-  font-weight: 200;
-`;
-
 const Hr = styled.hr`
   background-color: #eee;
   border: none;
@@ -186,53 +105,55 @@ export default function Cart() {
 
   const cart=useSelector((state)=>state.cart);
 console.log("cart",cart);
-  // //checkout button
-  // const handleCheckout = async () => {
-  //   const stripe = await getStripe();
-
-  //   const response = await publicRequest.post("/checkout/payment", {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //     body: JSON.stringify(cart),
-  //   });
-
-  //   if(response.statusCode === 500) return;
-    
-  //   const data = await response.json();
-  //   console.log("data");
-
-  //   toast.loading('Redirecting...');
-
-  //   stripe.redirectToCheckout({ sessionId: data.id });
-  // }
-  // stripe token
+  
   const [stripeToken,setStripeToken]=useState(null);
-  // const navigate =useNavigate();
+  const router =useRouter();
 
   const onToken = (token)=>{
     console.log(token);
-    setStripeToken(token);
+    // setStripeToken(token);
+    makePayment(token);
   };
+  const makePayment = async (token) => {
+    try {
+      // Make a request to your server (API route) to process the payment
+      const response = await fetch('/api/payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tokenId: token.id,
+          amount: cart.total * 100, // Assuming cart.total is the total amount in dollars
+        }),
+      });
   
-  // useEffect(()=>{
-  //   const makeRequest= async () => {
-  //     try{
-  //       console.log("chal")
-  //       const res=await publicRequest.post("/checkout/payment",{
-  //         tokenId:stripeToken.id,
-  //         amount:500,
-  //       });
-  //       console.log("chal2")
-  //       navigate("/success",{data:res.data});
-  //       // console.log(res.data);
-  //       // console.log("chal gya abhi");
-  //     }catch(err){console.log("err hai bhai!")}
-  //   };
-  //   stripeToken && makeRequest();
-  // },[stripeToken,cart.total,navigate]);
+      if (response.ok) {
+        // Payment successful, redirect or handle success as needed
+        router.push('/');
+      } else {
+        // Handle payment failure
+        console.error('Payment failed');
+      }
+    } catch (error) {
+      console.error('Error processing payment:', error);
+    }
+  };
+  useEffect(()=>{
+    const makeRequest= async () => {
+      try{
+        const res=await publicRequest.post("/payment",{
+          tokenId:stripeToken.id,
+          amount:500,
+        });
+        router.push('/');
+      }catch(err){console.log("err hai bhai!")}
+    };
+    stripeToken && makeRequest();
+  },[stripeToken,cart.total,router]);
+
 const session=useSession();
+console.log(cart)
 
 if (!session) {
   return (
@@ -259,34 +180,6 @@ if (!session) {
        </Top>
        <Bottom>
         <Info>
-        {/*
-      
-            {cart.products.map((product)=>(
-
-             <Product>
-                <ProductDetail>
-                <Image src={product.img} />
-                    <Details>
-                        <ProductName><b>Product:</b> {product.title}</ProductName>
-                        <ProductId><b>ID:</b> {product._id}</ProductId>
-                        <ProductColor color={product.color}/>
-                        <ProductSize><b>Size:</b>{product.size}</ProductSize>
-                    </Details>
-                </ProductDetail>
-
-                <PriceDetail>
-                    <ProductAmountContainer>
-                        <AddIcon/>
-                        <ProductAmount>{product.quantity}</ProductAmount>
-                        <RemoveIcon/>
-                    </ProductAmountContainer>
-
-                    <ProductPrice>${product.price*product.quantity}</ProductPrice>
-                </PriceDetail>
-            </Product>
-
-            ))}
-            */}
           <Hr/>
 
         </Info>
@@ -295,7 +188,7 @@ if (!session) {
             <SummaryTitle>ORDER SUMMARY</SummaryTitle>
             <SummaryItem>
                 <SummaryItemText>Subtotal</SummaryItemText>
-                <SummaryItemPrice>$ {"cart.total"}</SummaryItemPrice>
+                <SummaryItemPrice>$ {cart.total}</SummaryItemPrice>
             </SummaryItem>
             <SummaryItem>
               <SummaryItemText>Estimated Shipping</SummaryItemText>
@@ -307,26 +200,22 @@ if (!session) {
             </SummaryItem>
             <SummaryItem type="total">
               <SummaryItemText>Total</SummaryItemText>
-              <SummaryItemPrice>$ {"cart.total"}</SummaryItemPrice>
+              <SummaryItemPrice>$ {cart.total}</SummaryItemPrice>
             </SummaryItem>
 
-          {/* 
-         <StripeCheckout
+          
+            <StripeCheckout
               name='Krishna'
               image='https://w0.peakpx.com/wallpaper/480/995/HD-wallpaper-lord-krishna-bhagwan-krishna-lord-shree-thumbnail.jpg'
               billingAddress
               shippingAddress
-              description={`Your total is$${cart.total}`}
-              amount={cart.total*100}
-              token={onToken}
+              description={`Your total is $${cart.total}`}
+              amount={cart.total * 100}
+              token={onToken} // Call onToken function when Stripe creates a token
               stripeKey={KEY}
-              // key={KEY}
-
-              
             >
-            <Button >CHECKOUT NOW</Button>
+              <Button>CHECKOUT NOW</Button>
             </StripeCheckout>
-            */} 
         </Summary>
 
        </Bottom>
