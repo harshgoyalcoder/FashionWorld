@@ -4,9 +4,9 @@ const {verifyToken, verifyTokenAndAuthorization, verifyTokenAndAdmin}=require(".
 
 
 //update
-router.put("/:id",verifyTokenAndAuthorization, async(req,res)=>{
+router.put("/:id",verifyTokenAndAuthorization, async(req:any,res:any)=>{
     if(req.body.password){
-        req.body.password=CryptoJS.AES.encrypt(req.body.password, process.env.PASS_KEY).toString();
+        // req.body.password=CryptoJS.AES.encrypt(req.body.password, process.env.PASS_KEY).toString();
      }
       try{
             const updatedUser= await User.findByIdAndUpdate(req.params.id,{
@@ -24,7 +24,7 @@ router.put("/:id",verifyTokenAndAuthorization, async(req,res)=>{
 
 //delete
 
-router.delete("/:id",verifyTokenAndAuthorization,async(req,res)=>{
+router.delete("/:id",verifyTokenAndAuthorization,async(req:any,res:any)=>{
     try{
         await User.findByIdAndDelete(req.params.id);
         res.status(200).json("User has been deleted")
@@ -36,7 +36,7 @@ router.delete("/:id",verifyTokenAndAuthorization,async(req,res)=>{
 
 //get user
 
-router.get("/find/:id",verifyTokenAndAdmin,async(req,res)=>{
+router.get("/find/:id",verifyTokenAndAdmin,async(req:any,res:any)=>{
     try{
         const user =await User.findById(req.params.id);
         const{password,...others}=user._doc;
@@ -49,7 +49,7 @@ router.get("/find/:id",verifyTokenAndAdmin,async(req,res)=>{
 
 //get all user
 
-router.get("/",verifyTokenAndAdmin,async(req,res)=>{
+router.get("/",verifyTokenAndAdmin,async(req:any,res:any)=>{
     const  query=req.query.new;
     try{
         const users = query? await User.find().sort({_id:-1}).limit(2) : await User.find();
@@ -62,7 +62,7 @@ router.get("/",verifyTokenAndAdmin,async(req,res)=>{
 
 
 //get users stats
-router.get("/stats",verifyTokenAndAdmin,async(req,res)=>{
+router.get("/stats",verifyTokenAndAdmin,async(req:any,res:any)=>{
     const date = new Date();
     const lastYear=new Date(date.setFullYear(date.getFullYear()-1));
 

@@ -1,4 +1,4 @@
-import Products from '@/app/components/Products';
+"use client"
 import React, { useState } from 'react';
 import styled from 'styled-components';
 const Container = styled.div`
@@ -83,7 +83,6 @@ export default function ProductList() {
 
             {/* passsing all types of filters from the filter-container components  */}
             {/* and taking the filters as props in the products components--changes to be made there  */}
-            <Products cat={cat} filters={filters} sort={sort} />
         </Container>
     )
 }
