@@ -6,7 +6,6 @@ import Announcement from './components/Announcement'
 import AuthProvider from './components/AuthProvider/AuthProvider'
 import Navbar from './components/Navbar'
 import { Providers } from './GlobalRedux/provider'
-import Slider from './components/Slider'
 
 const font = Urbanist({ subsets: ['latin'] })
 
